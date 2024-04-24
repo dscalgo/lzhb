@@ -7,13 +7,15 @@
 #include <iomanip>
 #include <iostream>
 
+#include "binencdec.hpp"
 #include "cxxopts.hpp"
 #include "lzhb4.hpp"
 #include "lzhb4sa.hpp"
 #include "lzhb_common.hpp"
 
 void run(const std::string& s, const std::string& fname, size_t height_bound,
-         bool greedier, bool suffixarray, bool verify) {
+         bool greedier, bool suffixarray, const std::string& outfn,
+         bool verify) {
   auto ttstart = std::chrono::system_clock::now();
   auto ans = greedier ? (suffixarray ? lzhb4sa::parseGreedier(s, height_bound)
                                      : lzhb4::parseGreedier(s, height_bound))
@@ -44,15 +46,20 @@ void run(const std::string& s, const std::string& fname, size_t height_bound,
   // output:
   // "time_stamp,algorithm,file_name,height_bound,file_size,cmp_size,"
   // "max_height,height_average,height_variance,msec,ru_maxrss"
-  std::cout << std::put_time(lt, " % c ") << "," << progname << "," << fname
-            << "," << height_bound << "," << s.size() << "," << ans.size()
-            << "," << heights.second << "," << lzhb::average(heights.first)
-            << "," << lzhb::variance(heights.first) << "," << msec << ","
+  std::cout << std::put_time(lt, "%c") << "," << progname << "," << fname << ","
+            << height_bound << "," << s.size() << "," << ans.size() << ","
+            << heights.second << "," << lzhb::average(heights.first) << ","
+            << lzhb::variance(heights.first) << "," << msec << ","
             << usage.ru_maxrss << std::endl;
+  if (!outfn.empty()) {
+    binencdec::encodeTripletPhrase(ans, outfn, true, false);
+    binencdec::encodeTripletPhrase(ans, outfn, true, true);
+  }
 }
 
 void runC(const std::string& s, const std::string& fname, uInt height_bound,
-          bool greedier, bool suffixarray, bool verify) {
+          bool greedier, bool suffixarray, const std::string& outfn,
+          bool verify) {
   auto ttstart = std::chrono::system_clock::now();
   auto ans = greedier ? (suffixarray ? lzhb4sa::parseGreedierC(s, height_bound)
                                      : lzhb4::parseGreedierC(s, height_bound))
@@ -87,6 +94,10 @@ void runC(const std::string& s, const std::string& fname, uInt height_bound,
             << heights.second << "," << lzhb::average(heights.first) << ","
             << lzhb::variance(heights.first) << "," << msec << ","
             << usage.ru_maxrss << std::endl;
+  if (!outfn.empty()) {
+    binencdec::encodeTripletPhraseC(ans, outfn, true, false);
+    binencdec::encodeTripletPhraseC(ans, outfn, true, true);
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -95,8 +106,11 @@ int main(int argc, char* argv[]) {
   cxxopts::Options options(
       "lzhb4_main",
       "height-bounded modified lz that finds longest valid occurrence");
-  options.add_options()("f,file", "input file (use '-' for stdin)",
-                        cxxopts::value<std::string>()->default_value("-"))(
+  options.add_options()("f,file", "input file (use stdin if unspecified)",
+                        cxxopts::value<std::string>()->default_value(""))(
+      "o,outputfile",
+      "output file (no compressed representation if unspecified)",
+      cxxopts::value<std::string>()->default_value(""))(
       "a,appendchar", "phrases hold an explicit character at the end",
       cxxopts::value<bool>()->default_value("false"))(
       "s,suffixarray",
@@ -120,24 +134,24 @@ int main(int argc, char* argv[]) {
     height_bound = -1;
   }
   std::string fname = res["file"].as<std::string>();
-  if (fname != "-") {
+  std::string ofname = res["outputfile"].as<std::string>();
+  if (fname != "") {
     s = lzhb::fileread(fname);
     if (res["appendchar"].as<bool>())
       runC(s, fname, height_bound, res["optimize"].as<bool>(),
-           res["suffixarray"].as<bool>(), res["verify"].as<bool>());
+           res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
     else
       run(s, fname, height_bound, res["optimize"].as<bool>(),
-          res["suffixarray"].as<bool>(), res["verify"].as<bool>());
+          res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
   } else {
     while (std::cin >> s) {
       if (res["appendchar"].as<bool>())
         runC(s, fname, height_bound, res["optimize"].as<bool>(),
-             res["suffixarray"].as<bool>(), res["verify"].as<bool>());
+             res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
       else
         run(s, fname, height_bound, res["optimize"].as<bool>(),
-            res["suffixarray"].as<bool>(), res["verify"].as<bool>());
+            res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
     }
   }
-
   return 0;
 }
