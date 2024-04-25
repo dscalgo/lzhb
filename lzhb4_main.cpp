@@ -38,6 +38,9 @@ void run(const std::string& s, const std::string& fname, size_t height_bound,
     std::cerr << "decode check: " << ((s == lzhb::decode(ans)) ? "OK" : "NG")
               << std::endl;
     assert(s == lzhb::decode(ans));
+    std::cerr << "height check: "
+              << ((heights.second <= height_bound) ? "OK" : "NG") << std::endl;
+    assert(heights.second <= height_bound);
   }
 
   std::string progname = greedier ? (suffixarray ? "lzhb4SAz" : "lzhb4z")
@@ -82,6 +85,9 @@ void runC(const std::string& s, const std::string& fname, uInt height_bound,
     std::cerr << "decode check: " << ((s == lzhb::decode(ans)) ? "OK" : "NG")
               << std::endl;
     assert(s == lzhb::decode(ans));
+    std::cerr << "height check: "
+              << ((heights.second <= height_bound) ? "OK" : "NG") << std::endl;
+    assert(heights.second <= height_bound);
   }
 
   std::string progname = greedier ? (suffixarray ? "lzhb4SAaz" : "lzhb4az")
@@ -144,10 +150,9 @@ int main(int argc, char* argv[]) {
       run(s, fname, height_bound, res["optimize"].as<bool>(),
           res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
   } else {
-    if (!ofname.empty())
-      std::cerr << "No input file name specified. Processing STDIN. Ignoring "
-                   "output file name."
-                << std::endl;
+    std::cerr << "No input file name specified. Processing STDIN. Ignoring "
+                 "output file name."
+              << std::endl;
     while (std::cin >> s) {
       if (res["appendchar"].as<bool>())
         runC(s, fname, height_bound, res["optimize"].as<bool>(),

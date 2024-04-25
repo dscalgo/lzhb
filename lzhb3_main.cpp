@@ -38,6 +38,9 @@ void run(const std::string& s, const std::string& fname, size_t height_bound,
     std::cerr << "decode check: " << ((s == lzhb::decode(ans)) ? "OK" : "NG")
               << std::endl;
     assert(s == lzhb::decode(ans));
+    std::cerr << "height check: "
+              << ((heights.second <= height_bound) ? "OK" : "NG") << std::endl;
+    assert(heights.second <= height_bound);
   }
 
   std::string progname = greedier ? (suffixarray ? "lzhb3SAz" : "lzhb3z")
@@ -81,6 +84,9 @@ void runC(const std::string& s, const std::string& fname, uInt height_bound,
     std::cerr << "decode check: " << ((s == lzhb::decode(ans)) ? "OK" : "NG")
               << std::endl;
     assert(s == lzhb::decode(ans));
+    std::cerr << "height check: "
+              << ((heights.second <= height_bound) ? "OK" : "NG") << std::endl;
+    assert(heights.second <= height_bound);
   }
 
   std::string progname = greedier ? (suffixarray ? "lzhb3SAaz" : "lzhb3az")

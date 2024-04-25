@@ -62,7 +62,9 @@ std::vector<lzhb::Phrase> lzhb3sa::parse(const std::string& s,
     }
     res.push_back(lzhb::Phrase{.len = len, .src = src});
     pos += len;
+    std::cerr << "\r" << pos << "/" << s.size();
   }
+  std::cerr << std::endl;
   return res;
 }
 
@@ -98,7 +100,9 @@ std::vector<lzhb::Phrase> lzhb3sa::parseGreedier(const std::string& s,
     }
     res.push_back(lzhb::Phrase{.len = len, .src = src});
     pos += len;
+    std::cerr << "\r" << pos << "/" << s.size();
   }
+  std::cerr << std::endl;
   return res;
 }
 
@@ -136,7 +140,9 @@ std::vector<lzhb::PhraseC> lzhb3sa::parseC(const std::string& s,
       //             << ", .c = " << s[pos - 1] << "}" << std::endl;
       res.push_back(lzhb::PhraseC{.len = len, .src = src, .c = s[pos - 1]});
     }
+    std::cerr << "\r" << pos << "/" << s.size();
   }
+  std::cerr << std::endl;
   return res;
 }
 
