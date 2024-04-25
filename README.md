@@ -119,3 +119,6 @@ The following extensions are appended to the filename:
 - .lzxcp
   - modified lz encoding with (position, source, period, char)
 
+## Known Issues
+
+- `UkkonenSTree::~UkkonenSTree()` currently does nothing
