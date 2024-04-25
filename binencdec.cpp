@@ -1220,7 +1220,61 @@ size_t binencdec::encodeTripletPhrase(
 size_t binencdec::encodeTripletPhraseC(
     std::vector<struct lzhb::PhraseModC>& phrase, const std::string& filename,
     bool output, bool position) {
-  std::cerr << "sorry, not implemented yet" << std::endl;
+  std::vector<uInt> phrase_lp;
+  std::vector<uInt> phrase_src;
+  std::vector<uInt> phrase_per;
+  std::vector<char> phrase_c;
+
+  uInt pos = 0;
+  uInt max_lp = 1;
+  uInt max_src = 1;
+  uInt max_per = 1;
+  for (size_t i = 0; i < phrase.size(); i++) {
+    if (position) {
+      pos += std::max((uInt)1, phrase[i].len);
+      phrase_lp.push_back(pos);
+    } else {
+      phrase_lp.push_back(phrase[i].len);
+    }
+    phrase_src.push_back(phrase[i].src);
+    phrase_per.push_back(phrase[i].per);
+    phrase_c.push_back(phrase[i].c);
+    max_lp = std::max(max_lp, phrase_lp[i]);
+    max_src = std::max(max_src, phrase_src[i]);
+    max_per = std::max(max_per, phrase_per[i]);
+  }
+  bitsize_t bitsize_lp = (bitsize_t)log2((double)max_lp) + 1;
+  bitsize_t bitsize_src = (bitsize_t)log2((double)max_src) + 1;
+  bitsize_t bitsize_per = (bitsize_t)log2((double)max_per) + 1;
+
+  std::vector<uint8_t> bin_lp;
+  std::vector<uint8_t> bin_src;
+  std::vector<uint8_t> bin_per;
+  binencdec::encodeBlock(bitsize_lp, bin_lp, phrase_lp);
+  binencdec::encodeBlock(bitsize_src, bin_src, phrase_src);
+  binencdec::encodeBlock(bitsize_per, bin_per, phrase_per);
+
+  phrase_t phrase_size = phrase.size();
+  if (output) {
+    std::string binfile = filename;
+    if (position) {
+      binfile += ".lzxcp";
+    } else {
+      binfile += ".lzxc";
+    }
+    std::ofstream fs(binfile, std::ofstream::binary);
+    fs.write((char*)&phrase_size, sizeof(phrase_t));
+    fs.write((char*)&bitsize_lp, sizeof(bitsize_t));
+    fs.write((char*)&bitsize_src, sizeof(bitsize_t));
+    fs.write((char*)&bitsize_per, sizeof(bitsize_t));
+    fs.write((char*)&bin_lp[0], bin_lp.size());
+    fs.write((char*)&bin_src[0], bin_src.size());
+    fs.write((char*)&bin_per[0], bin_per.size());
+    fs.write((char*)&phrase_c[0], phrase.size());
+    fs.close();
+  }
+  return sizeof(phrase_t) + sizeof(bitsize_t) + sizeof(bitsize_t) +
+         bin_lp.size() + bin_src.size() + bin_per.size() + phrase.size();
 }
 
 std::vector<struct lzhb::PhraseMod> binencdec::decodetoTripletPhrase(
@@ -1286,6 +1340,80 @@ std::vector<struct lzhb::PhraseMod> binencdec::decodetoTripletPhrase(
     for (size_t i = 0; i < phrase_lp.size(); i++) {
       phrase.push_back(lzhb::PhraseMod{
           .len = phrase_lp[i], .src = phrase_src[i], .per = phrase_per[i]});
+    }
+  }
+  return phrase;
+}
+
+std::vector<struct lzhb::PhraseModC> binencdec::decodetoTripletPhraseC(
+    const std::string& filename, bool position) {
+  std::vector<struct lzhb::PhraseModC> phrase;
+
+  std::string binfile = filename;
+  if (position) {
+    binfile += ".lzxcp";
+  } else {
+    binfile += ".lzxc";
+  }
+  std::ifstream fs(binfile, std::ifstream::binary);
+
+  phrase_t phrase_size = 1;
+  bitsize_t bitsize_lp = 1;
+  bitsize_t bitsize_src = 1;
+  bitsize_t bitsize_per = 1;
+
+  fs.read((char*)&phrase_size, sizeof(phrase_t));
+  fs.read((char*)&bitsize_lp, sizeof(bitsize_t));
+  fs.read((char*)&bitsize_src, sizeof(bitsize_t));
+  fs.read((char*)&bitsize_per, sizeof(bitsize_t));
+
+  size_t tail_lp = 1 + ((phrase_size * bitsize_lp - 1) % 8);
+  size_t tail_src = 1 + ((phrase_size * bitsize_src - 1) % 8);
+  size_t tail_per = 1 + ((phrase_size * bitsize_per - 1) % 8);
+  size_t size_lp = 1 + (phrase_size * bitsize_lp - 1) / 8;
+  size_t size_src = 1 + (phrase_size * bitsize_src - 1) / 8;
+  size_t size_per = 1 + (phrase_size * bitsize_per - 1) / 8;
+
+  std::vector<uint8_t> bin_lp(size_lp);
+  std::vector<uint8_t> bin_src(size_src);
+  std::vector<uint8_t> bin_per(size_per);
+  std::vector<char> phrase_c(phrase_size);
+
+  fs.read((char*)&bin_lp[0], bin_lp.size());
+  fs.read((char*)&bin_src[0], bin_src.size());
+  fs.read((char*)&bin_per[0], bin_per.size());
+  fs.read((char*)&phrase_c[0], phrase_c.size());
+  fs.close();
+
+  std::vector<uInt> phrase_lp;
+  std::vector<uInt> phrase_src;
+  std::vector<uInt> phrase_per;
+
+  binencdec::decodeBlock(bin_lp, phrase_lp, bitsize_lp, tail_lp);
+  binencdec::decodeBlock(bin_src, phrase_src, bitsize_src, tail_src);
+  binencdec::decodeBlock(bin_per, phrase_per, bitsize_per, tail_per);
+
+  if (position) {
+    for (size_t i = 0; i < phrase_lp.size(); i++) {
+      if (i == 0) {
+        phrase.push_back(lzhb::PhraseModC{.len = phrase_lp[i],
+                                          .src = phrase_src[i],
+                                          .per = phrase_per[i],
+                                          .c = phrase_c[i]});
+      } else {
+        phrase.push_back(
+            lzhb::PhraseModC{.len = phrase_lp[i] - phrase_lp[i - 1],
+                             .src = phrase_src[i],
+                             .per = phrase_per[i],
+                             .c = phrase_c[i]});
+      }
+    }
+  } else {
+    for (size_t i = 0; i < phrase_lp.size(); i++) {
+      phrase.push_back(lzhb::PhraseModC{.len = phrase_lp[i],
+                                        .src = phrase_src[i],
+                                        .per = phrase_per[i],
+                                        .c = phrase_c[i]});
     }
   }
   return phrase;

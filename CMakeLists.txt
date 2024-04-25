@@ -12,3 +12,7 @@ add_executable(lzhb3
 add_executable(lzhb4
   lzhb4_main.cpp lzhb4.cpp lzhb4sa.cpp lzhb_common.cpp suffixtree.cpp truncatedSuffixArray.cpp libsais.c twodminheap.cpp binencdec.cpp
 )
+
+add_executable(lzhb_decomp
+  lzhb_decomp_main.cpp lzhb_common.cpp suffixtree.cpp truncatedSuffixArray.cpp libsais.c twodminheap.cpp binencdec.cpp
+)

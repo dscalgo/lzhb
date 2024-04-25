@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
   std::string s;
   size_t height_bound;
   cxxopts::Options options(
-      "lzhb4_main",
+      "lzhb4",
       "height-bounded modified lz that finds longest valid occurrence");
   options.add_options()("f,file", "input file (use stdin if unspecified)",
                         cxxopts::value<std::string>()->default_value(""))(
