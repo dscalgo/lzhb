@@ -104,11 +104,6 @@ std::vector<lzhb::Phrase> binencdec::decodetoPhrase(const std::string& filename,
   std::vector<lzhb::Phrase> phrase;
 
   std::string binfile = filename;
-  if (position) {
-    binfile += ".lzp";
-  } else {
-    binfile += ".lz";
-  }
   std::ifstream fs(binfile, std::ifstream::binary);
 
   phrase_t phrase_size = 1;
@@ -161,11 +156,6 @@ std::vector<lzhb::PhraseC> binencdec::decodetoPhraseC(
   std::vector<lzhb::PhraseC> phrase;
 
   std::string binfile = filename;
-  if (position) {
-    binfile += ".lzcp";
-  } else {
-    binfile += ".lzc";
-  }
   std::ifstream fs(binfile, std::ifstream::binary);
 
   phrase_t phrase_size = 1;
@@ -1282,11 +1272,6 @@ std::vector<struct lzhb::PhraseMod> binencdec::decodetoTripletPhrase(
   std::vector<struct lzhb::PhraseMod> phrase;
 
   std::string binfile = filename;
-  if (position) {
-    binfile += ".lzxp";
-  } else {
-    binfile += ".lzx";
-  }
   std::ifstream fs(binfile, std::ifstream::binary);
 
   phrase_t phrase_size = 1;
@@ -1350,11 +1335,6 @@ std::vector<struct lzhb::PhraseModC> binencdec::decodetoTripletPhraseC(
   std::vector<struct lzhb::PhraseModC> phrase;
 
   std::string binfile = filename;
-  if (position) {
-    binfile += ".lzxcp";
-  } else {
-    binfile += ".lzxc";
-  }
   std::ifstream fs(binfile, std::ifstream::binary);
 
   phrase_t phrase_size = 1;

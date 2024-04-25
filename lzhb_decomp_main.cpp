@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
   }
   std::string fname = res["file"].as<std::string>();
   std::string ofname = res["outputfile"].as<std::string>();
-  if (fname.empty() || ofname.empty()) {
-    std::cerr << "file name or output file name is empty" << std::endl;
+  if (fname.empty()) {
+    std::cerr << "input file name cannot be empty" << std::endl;
     exit(1);
   }
 
@@ -66,8 +66,12 @@ int main(int argc, char* argv[]) {
     std::cerr << "file name does not have valid extension" << std::endl;
     exit(1);
   }
-  std::ofstream fs(ofname, std::ifstream::binary);
-  fs.write((char*)outstr.c_str(), outstr.size());
-  fs.close();
+  if (ofname.empty()) {
+    std::cout << outstr;
+  } else {
+    std::ofstream fs(ofname, std::ifstream::binary);
+    fs.write((char*)outstr.c_str(), outstr.size());
+    fs.close();
+  }
   return 0;
 }

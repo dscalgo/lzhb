@@ -142,13 +142,16 @@ int main(int argc, char* argv[]) {
       run(s, fname, height_bound, res["optimize"].as<bool>(),
           res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
   } else {
+    std::cerr << "No input file name specified. Processing STDIN. Ignoring "
+                 "output file name."
+              << std::endl;
     while (std::cin >> s) {
       if (res["appendchar"].as<bool>())
         runC(s, fname, height_bound, res["optimize"].as<bool>(),
-             res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
+             res["suffixarray"].as<bool>(), "", res["verify"].as<bool>());
       else
         run(s, fname, height_bound, res["optimize"].as<bool>(),
-            res["suffixarray"].as<bool>(), ofname, res["verify"].as<bool>());
+            res["suffixarray"].as<bool>(), "", res["verify"].as<bool>());
     }
   }
   return 0;

@@ -1,5 +1,15 @@
 # LZHB: Height Bounded Lempel-Ziv encodings
 
+Prototype implementations of LZHB3 and LZHB4 and their variants, as described in:
+
+- "Height-bounded Lempel-Ziv encodings", Hideo Bannai, Mitsuru Funakoshi, Diptarama Hendrian, Myuji Matsuda, Simon J. Puglisi, https://arxiv.org/abs/2403.08209
+
+In LZHB3, references for each position in a phrase are defined straight-fowardly from the references of the phrase, with an exception in self-referencing phrases: for a phrase $T[i..i+\ell)$ that references position $T[j+\ell)$,
+the references of each position is translated to positions between $j$ and $i$ based on periodicity: i.e., for $0\leq k <\ell$, $T[i+k]$ references $T[j+(k\bmod(j-i))]$.
+
+In LZHB4, a phrase is allowed to be a (possibly fractional) power of a prefix, i.e., $T[i..i+\ell) = x^e$ can reference a previous occurrence $j$ of $x$, i.e., $T[i+k]$ for $0 \leq k < \ell$ references $T[j+((k\bmod|x|)\bmod(j-i))]$.
+When $|x| = 1$, $x^k$ can be represented as a single phrase. Therefore, LZHB4 with height bound $0$ corresponds to the run-length encoding of the string.
+
 ## Build:
 
 Requirements:
@@ -11,7 +21,7 @@ Requirements:
 
 This makes executables in the directory `build/`.
 
-## What does what
+## Programs
 
 ### lzhb3
 
@@ -19,18 +29,20 @@ Greedy lzhb encoding where each phrase starting at position $i$ is the longest $
 
 ```bash
 Usage:
-  lzhb3_main [OPTION...]
+  lzhb3 [OPTION...]
 
-  -f, --file arg     input file (use '-' for stdin) (default: -)
-  -a, --appendchar   the phrase is the shortest prefix that has no 
-                     occurrence satisfying height constraint
-  -s, --suffixarray  O(n \log n) suffix array version (default is to use 
-                     O(n \log \sigma) suffix tree version)
-  -z, --optimize     greedily find best occurrence (minimize maximum 
-                     height)
-  -b, --hbound arg   maximum allowed height (default: 0xffffffffffffffff)
-  -g, --verify       verify output in various ways
-  -h, --help         Print usage
+  -f, --file arg        input file (use stdin if unspecified) (default: "")
+  -o, --outputfile arg  output file (no compressed representation if 
+                        unspecified) (default: "")
+  -a, --appendchar      phrases hold an explicit character at the end
+  -s, --suffixarray     O(n\log n) suffix array version (default is to use 
+                        O(n \log \sigma) suffix tree version)
+  -z, --optimize        greedily find best occurrence (minimize maximum 
+                        height)
+  -b, --hbound arg      maximum allowed height (default: 
+                        0xffffffffffffffff)
+  -g, --verify          verify output in various ways
+  -h, --help            Print usage
 ```
 
 ### lzhb4
@@ -39,21 +51,39 @@ Greedy lzhb encoding where each phrase starting at position $i$ is the longest $
 
 ```bash
 Usage:
-  lzhb4_main [OPTION...]
+  lzhb4 [OPTION...]
 
-  -f, --file arg     input file (use '-' for stdin) (default: -)
-  -a, --appendchar   the phrase is the shortest prefix that has no 
-                     occurrence satisfying height constraint
-  -s, --suffixarray  O(n \log n) suffix array version (default is to use 
-                     O(n \log \sigma) suffix tree version)
-  -z, --optimize     greedily find best occurrence (minimize maximum 
-                     height)
-  -b, --hbound arg   maximum allowed height (default: 0xffffffffffffffff)
-  -g, --verify       verify output in various ways
-  -h, --help         Print usage
+  -f, --file arg        input file (use stdin if unspecified) (default: "")
+  -o, --outputfile arg  output file (no compressed representation if 
+                        unspecified) (default: "")
+  -a, --appendchar      phrases hold an explicit character at the end
+  -s, --suffixarray     O(n\log n) suffix array version (default is to use 
+                        O(n\log\sigma) suffix tree version)
+  -z, --optimize        greedily find best occurrence (minimize maximum 
+                        height)
+  -b, --hbound arg      maximum allowed height (default: 
+                        0xffffffffffffffff)
+  -g, --verify          verify output in various ways
+  -h, --help            Print usage
 ```
 
-The programs only output a summary of the parsing in a comma separated format. The fields are:
+### lzhb_decomp
+
+A decompression program accompanying lzhb3 and lzhb4 implementations. The filename should end with one of the 8 above extensions.
+If no output file name is specified, it will output to stdout.
+
+```bash
+Usage:
+  lzhb_decomp [OPTION...]
+
+  -f, --file arg        input file (default: "")
+  -o, --outputfile arg  output file (default: "")
+  -h, --help            Print usage
+```
+
+## Output
+
+lzhb3 and lzhb4 output a summary of the parsing in a comma separated format. The fields are:
 
 1. time stamp
 2. algorithm
@@ -67,12 +97,25 @@ The programs only output a summary of the parsing in a comma separated format. T
 10. msec: running time (measured from after reading the input into memory, to finish computing of the parse) in milliseconds
 11. ru_maxrss: max resident set size obtained by getrusage (bytes or kilobytes, depending on operating system)
 
-When no filename is supplied, the programs process and outputs a summary of the parsing for each line of the standard input.
+When no input filename is supplied, each line of the standard input is proceessed. The outputfile argument is ignored.
 
-## Notes
+When an output filename is supplied, the program outputs a simple bit-packed binary encoding of the phrases.
+The following extensions are appended to the filename:
 
-In lzhb3, references for each position in a phrase are defined straight-fowardly from the references of the phrase, with an exception in self-referencing phrases: for a phrase $T[i..i+\ell)$ that references position $T[j+\ell)$,
-the references of each position is translated to positions between $j$ and $i$ based on periodicity: i.e., for $0\leq k <\ell$, $T[i+k]$ references $T[j+(k\bmod(j-i))]$.
+- .lz
+  - standard lz encoding with (length, source)
+- .lzp
+  - standard lz encoding with (position, source)
+- .lzc
+  - standard lz encoding with (length, source, char)
+- .lzcp
+  - standard lz encoding with (position, source, char)
+- .lzx
+  - modified lz encoding with (length, source, period)
+- .lzxp
+  - modified lz encoding with (position, source, period)
+- .lzxc
+  - modified lz encoding with (length, source, period, char)
+- .lzxcp
+  - modified lz encoding with (position, source, period, char)
 
-In lzhb4, a phrase is allowed to be a power of a prefix, i.e., $T[i..i+\ell) = x^e$ can reference a previous occurrence $j$ of $x$, i.e., $T[i+k]$ for $0 \leq k < \ell$ references $T[j+(k\bmod|x|)]$.
-When $|x| = 1$, $x^k$ can be represented as a single phrase. Therefore, lzhb4 with height bound $0$ is exactly the run-length encoding the string.
