@@ -69,7 +69,7 @@ Usage:
 
 ### lzhb_decomp
 
-A decompression program accompanying lzhb3 and lzhb4 implementations. The filename should end with one of the 8 above extensions.
+A decompression program accompanying lzhb3 and lzhb4 implementations. The filename should end with one of the 8 extensions described below.
 If no output file name is specified, it will output to stdout.
 
 ```bash
@@ -99,25 +99,25 @@ lzhb3 and lzhb4 output a summary of the parsing in a comma separated format. The
 
 When no input filename is supplied, each line of the standard input is proceessed. The outputfile argument is ignored.
 
-When an output filename is supplied, the program outputs a simple bit-packed binary encoding of the phrases.
+When an output filename is supplied, the program outputs a naive bit-packed binary encoding of the phrases.
 The following extensions are appended to the filename:
 
 - .lz
-  - standard lz encoding with (length, source)
+  - standard lz encoding with (length, source). Produced with `lzhb3`.
 - .lzp
-  - standard lz encoding with (position, source)
+  - standard lz encoding with (position, source). Produced with `lzhb3`.
 - .lzc
-  - standard lz encoding with (length, source, char)
+  - standard lz encoding with (length, source, char). Produced with `lzhb3 -a`.
 - .lzcp
-  - standard lz encoding with (position, source, char)
+  - standard lz encoding with (position, source, char). Produced with `lzhb3 -a`.
 - .lzx
-  - modified lz encoding with (length, source, period)
+  - modified lz encoding with (length, source, period). Produced with `lzhb4`.
 - .lzxp
-  - modified lz encoding with (position, source, period)
+  - modified lz encoding with (position, source, period). Produced with `lzhb4`.
 - .lzxc
-  - modified lz encoding with (length, source, period, char)
+  - modified lz encoding with (length, source, period, char). Produced with `lzhb4 -a`.
 - .lzxcp
-  - modified lz encoding with (position, source, period, char)
+  - modified lz encoding with (position, source, period, char). Produced with `lzhb4 -a`.
 
 ## Known Issues
 
