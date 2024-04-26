@@ -45,6 +45,8 @@ Usage:
   -h, --help            Print usage
 ```
 
+Note: The parsing computed by `lzhb3 -a -z` (suffix tree version) or `lzhb3 -a -z -s` (suffix array version) corresponds to that of [greedier_BATLZ](https://github.com/fmasillo/BAT-LZ), with possible differences when there are multiple choices for occurrences that have the min-max height.
+
 ### lzhb4
 
 Greedy lzhb encoding where each phrase starting at position $i$ is the longest $\ell$ such that there exists a reference of $T[i..i+\ell)$ that satisfies the height bound. Here, a reference of a factor is a previous occurrence of a prefix periodicity of the factor, i.e., $x$ such that $T[i..i+\ell) =x^e$ for some $e \in \{ \frac{i}{|x|} \mid i \in \{1,2,\ldots\}\}$
